@@ -107,11 +107,6 @@ VALUES
 (3, '102', 'Meera Nair', 'meera', 'meera@example.com', '9988776655', '$2y$10$3l9jOpJXMiZVFxL8dkWY4ujkLDeT/Ewt4oTVrRLMi03vIk1Zivjxa', 'Dean', 'M.Sc. Computer Science', 'uploads/102_meera.jpg', '2025-05-30 10:00:00'),
 (4, '1002', 'Rajiv Menon', 'rajiv', 'rajiv@example.com', '9112233445', '$2y$10$8LM0Jcn5BQQxXIMzqRLVaOho3fb2vg1dp9TxRjXf7qqKN3zS4ivhC', 'Principal', 'All', 'uploads/1002_rajiv.jpg', '2025-05-30 10:05:00');
 
-
---
--- Indexes for dumped tables
---
-
 --
 -- Indexes for table `admin`
 --
@@ -142,10 +137,6 @@ ALTER TABLE `users`
   ADD UNIQUE KEY `faculty_id` (`faculty_id`);
 
 --
--- AUTO_INCREMENT for dumped tables
---
-
---
 -- AUTO_INCREMENT for table `admin`
 --
 ALTER TABLE `admin`
@@ -168,10 +159,6 @@ ALTER TABLE `leave_requests`
 --
 ALTER TABLE `users`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
-
---
--- Constraints for dumped tables
---
 
 --
 -- Constraints for table `leave_history`
