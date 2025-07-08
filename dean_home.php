@@ -616,7 +616,7 @@ if ($dean_school === null) {
                   <label><strong>ID:</strong> <?= htmlspecialchars($id); ?></label>
                   <label><strong>Name:</strong> <?= htmlspecialchars($name); ?></label>
                   <label><strong>Username:</strong> <?= htmlspecialchars($username); ?></label>
-                 <label><strong>Role:</strong> <?= ucfirst(htmlspecialchars($role)); ?></label>
+                  <label><strong>Role:</strong> <?= ucfirst(htmlspecialchars($role)); ?></label>
                   <label><strong>Department:</strong> <?= htmlspecialchars($department); ?></label>
                   <label><strong>Email:</strong> <?= htmlspecialchars($email); ?></label>
                   <label><strong>Phone:</strong> <?= htmlspecialchars($phone); ?></label>
@@ -684,7 +684,7 @@ if ($dean_school === null) {
             $placeholders = implode(',', array_fill(0, count($dean_departments), '?'));
             $types = str_repeat('s', count($dean_departments));
             
-            $query = "SELECT lr.id, u.username, lr.leave_type, lr.date_from, lr.date_to, lr.reason 
+            $query = "SELECT lr.id, u.name, lr.leave_type, lr.date_from, lr.date_to, lr.reason 
                      FROM leave_requests lr 
                      JOIN users u ON lr.faculty_id = u.id 
                      WHERE lr.dean_status = 'pending' AND u.role = 'faculty' 
@@ -708,7 +708,7 @@ if ($dean_school === null) {
                 </tr>
                 <?php while ($row = $result->fetch_assoc()): ?>
                   <tr>
-                    <td><?= htmlspecialchars($row['username']) ?></td>
+                    <td><?= htmlspecialchars($row['name']) ?></td>
                     <td><?= htmlspecialchars($row['leave_type']) ?></td>
                     <td><?= $row['date_from'] ?></td>
                     <td><?= $row['date_to'] ?></td>
@@ -743,7 +743,7 @@ if ($dean_school === null) {
             $placeholders = implode(',', array_fill(0, count($dean_departments), '?'));
             $types = str_repeat('s', count($dean_departments));
             
-            $query = "SELECT lr.id, u.username, lr.leave_type, lr.date_from, lr.date_to, lr.reason 
+            $query = "SELECT lr.id, u.name, lr.leave_type, lr.date_from, lr.date_to, lr.reason 
                      FROM leave_requests lr 
                      JOIN users u ON lr.faculty_id = u.id 
                      WHERE lr.dean_status = 'pending' AND u.role = 'hod' 
@@ -768,7 +768,7 @@ if ($dean_school === null) {
                 </tr>
                 <?php while ($row = $result->fetch_assoc()): ?>
                   <tr>
-                    <td><?= htmlspecialchars($row['username']) ?></td>
+                    <td><?= htmlspecialchars($row['name']) ?></td>
                     <td><?= htmlspecialchars($row['leave_type']) ?></td>
                     <td><?= $row['date_from'] ?></td>
                     <td><?= $row['date_to'] ?></td>

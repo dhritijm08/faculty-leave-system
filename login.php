@@ -3,10 +3,10 @@ session_start();
 include 'db_connect.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+    $username = trim($_POST['username']);
+    $password = trim($_POST['password']);
 
-    // Check user in database
+    // Prepare SQL - using email as username
     $stmt = $conn->prepare("SELECT id, password, role FROM users WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
@@ -16,30 +16,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bind_result($user_id, $hashed_password, $role);
         $stmt->fetch();
 
+        // Debug output (remove in production)
+        // echo "Entered: $password<br>";
+        // echo "Hash: $hashed_password<br>";
+
         if (password_verify($password, $hashed_password)) {
-            // Store user info in session
             $_SESSION['user_id'] = $user_id;
             $_SESSION['username'] = $username;
             $_SESSION['role'] = $role;
 
-            // Determine redirect path based on role
-            $redirect_path = '';
-            switch ($role) {
-                case 'faculty':
-                    $redirect_path = 'faculty_home.php';
-                    break;
-                case 'hod':
-                    $redirect_path = 'hod_home.php';
-                    break;
-                case 'dean':
-                    $redirect_path = 'dean_home.php';
-                    break;
-                case 'principal':
-                    $redirect_path = 'principal_home.php';
-                    break;
-                default:
-                    $redirect_path = 'login.php';
-            }
+            // Role-based redirection
+            $redirect_path = match($role) {
+                'faculty' => 'faculty_home.php',
+                'hod' => 'hod_home.php',
+                'dean' => 'dean_home.php',
+                'principal' => 'principal_home.php',
+                default => 'login.php',
+            };
 
             echo json_encode(['status' => 'success', 'redirect' => $redirect_path]);
         } else {
