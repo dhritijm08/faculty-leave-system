@@ -650,10 +650,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_id'], $_POST['a
 
           <div id="faculty-requests" class="request-content <?= $active_sub_tab == 'faculty-requests' ? 'active' : '' ?>">
             <?php
-            $stmt = $conn->prepare("SELECT lr.id, u.username, lr.leave_type, lr.date_from, lr.date_to, lr.reason 
-                                  FROM leave_requests lr 
-                                  JOIN users u ON lr.faculty_id = u.id 
-                                  WHERE lr.principal_status = 'pending' AND u.role = 'faculty'");
+            $stmt = $conn->prepare("SELECT lr.id, u.name, lr.leave_type, lr.date_from, lr.date_to, lr.reason 
+                        FROM leave_requests lr 
+                        JOIN users u ON lr.faculty_id = u.id 
+                        WHERE lr.principal_status = 'pending' AND u.role = 'faculty'");
             $stmt->execute();
             $result = $stmt->get_result();
             ?>
@@ -670,7 +670,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_id'], $_POST['a
                 </tr>
                 <?php while ($row = $result->fetch_assoc()): ?>
                   <tr>
-                    <td><?= htmlspecialchars($row['username']) ?></td>
+                    <td><?= htmlspecialchars($row['name']) ?></td>
                     <td><?= htmlspecialchars($row['leave_type']) ?></td>
                     <td><?= $row['date_from'] ?></td>
                     <td><?= $row['date_to'] ?></td>
@@ -701,10 +701,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_id'], $_POST['a
 
           <div id="hod-requests" class="request-content <?= $active_sub_tab == 'hod-requests' ? 'active' : '' ?>">
             <?php
-            $stmt = $conn->prepare("SELECT lr.id, u.username, lr.leave_type, lr.date_from, lr.date_to, lr.reason 
-                                  FROM leave_requests lr 
-                                  JOIN users u ON lr.faculty_id = u.id 
-                                  WHERE lr.principal_status = 'pending' AND u.role = 'hod'");
+            $stmt = $conn->prepare("SELECT lr.id, u.name, lr.leave_type, lr.date_from, lr.date_to, lr.reason 
+                        FROM leave_requests lr 
+                        JOIN users u ON lr.faculty_id = u.id 
+                        WHERE lr.principal_status = 'pending' AND u.role = 'hod'");
             $stmt->execute();
             $result = $stmt->get_result();
             ?>
@@ -721,7 +721,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_id'], $_POST['a
                 </tr>
                 <?php while ($row = $result->fetch_assoc()): ?>
                   <tr>
-                    <td><?= htmlspecialchars($row['username']) ?></td>
+                    <td><?= htmlspecialchars($row['name']) ?></td>
                     <td><?= htmlspecialchars($row['leave_type']) ?></td>
                     <td><?= $row['date_from'] ?></td>
                     <td><?= $row['date_to'] ?></td>
@@ -752,10 +752,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_id'], $_POST['a
 
           <div id="dean-requests" class="request-content <?= $active_sub_tab == 'dean-requests' ? 'active' : '' ?>">
             <?php
-            $stmt = $conn->prepare("SELECT lr.id, u.username, lr.leave_type, lr.date_from, lr.date_to, lr.reason 
-                                  FROM leave_requests lr 
-                                  JOIN users u ON lr.faculty_id = u.id 
-                                  WHERE lr.principal_status = 'pending' AND u.role = 'dean'");
+           $stmt = $conn->prepare("SELECT lr.id, u.name, lr.leave_type, lr.date_from, lr.date_to, lr.reason 
+                        FROM leave_requests lr 
+                        JOIN users u ON lr.faculty_id = u.id 
+                        WHERE lr.principal_status = 'pending' AND u.role = 'dean'");
             $stmt->execute();
             $result = $stmt->get_result();
             ?>
@@ -772,7 +772,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_id'], $_POST['a
                 </tr>
                 <?php while ($row = $result->fetch_assoc()): ?>
                   <tr>
-                    <td><?= htmlspecialchars($row['username']) ?></td>
+                    <td><?= htmlspecialchars($row['name']) ?></td>
                     <td><?= htmlspecialchars($row['leave_type']) ?></td>
                     <td><?= $row['date_from'] ?></td>
                     <td><?= $row['date_to'] ?></td>
