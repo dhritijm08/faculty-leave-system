@@ -33,8 +33,8 @@ The Faculty Leave System allows faculty members to submit leave requests and ena
 📝 6. Leave Application Form  
 ![Leave Form](screenshots/leave_form.png)
 
-🧑‍⚖️ 7. Principal Dashboard — Leave Requests  
-![Principal Dashboard](screenshots/principal_dashboard.png)
+🧑‍⚖️ 7. Leave Requests — Principal Dashboard 
+![Principal Dashboard](screenshots/leave_requests.png)
 
 📋 8. Leave Status  
 ![Leave Status](screenshots/leave_status.png)
