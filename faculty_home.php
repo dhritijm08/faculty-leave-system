@@ -16,7 +16,7 @@ $stmt->bind_result($id, $name, $username, $role, $department, $photo, $email, $p
 $stmt->fetch();
 $stmt->close();
 
-$tab = isset($_GET['tab']) ? $_GET['tab'] : 'profile';
+$tab = isset($_GET['tab']) ? $_GET['tab'] : 'leave-history';
 ?>
 
 <!DOCTYPE html>
@@ -196,107 +196,103 @@ $tab = isset($_GET['tab']) ? $_GET['tab'] : 'profile';
       background-color: #e6e6e6;
     }
 
-    .status-text-pending { color: #facc15; font-weight: bold;}
-    .status-text-approved { color: #16a34a; font-weight: bold; }
-    .status-text-rejected { color: #dc2626; font-weight: bold; }
+    .approval-hierarchy {
+      font-size: 12px;
+      line-height: 1.6;
+    }
 
-    .status-pending {
-      background-color: #facc15;
+    .approval-item {
+      margin-bottom: 8px;
+      padding: 6px;
+      border-radius: 4px;
+      background-color: #f8f9fa;
+    }
+
+    .approval-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .approval-authority {
+      font-weight: bold;
       color: #131921;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 13px;
-      font-weight: bold;
+      display: inline;
+      margin-bottom: 0;
+      margin-right: 5px;
     }
 
-    .status-approved {
-      background-color: #16a34a;
-      color: white;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 13px;
-      font-weight: bold;
-    }
-
-    .status-rejected {
-      background-color: #dc2626;
-      color: white;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 13px;
-      font-weight: bold;
-    }
-
-    .leave-cards {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      margin-top: 30px;
-    }
-
-    .leave-card {
-      background: white;
-      border-radius: 10px;
-      padding: 20px;
-      width: 320px;
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08), 
-            0 -6px 12px rgba(0, 0, 0, 0.08);
-      transition: transform 0.3s ease;
-      border: 1px solid #ddd;
-    }
-
-    .leave-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-    }
-
-    .status-timeline {
+    .approval-header {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      margin-top: 15px;
-      position: relative;
-      padding: 0 10px;
+      gap: 5px;
+      margin-bottom: 3px;
     }
 
-    .status-timeline .dot {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      border: 3px solid #ddd;
-      background-color: #ccc;
-      position: relative;
-      z-index: 2;
+    .approval-status {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: bold;
+      margin-right: 5px;
     }
 
-    .status-timeline .dot.approved { background-color: #16a34a; }
-    .status-timeline .dot.rejected { background-color: #dc2626; }
-    .status-timeline .dot.pending { background-color: #facc15; }
-
-    .status-timeline .line {
-      flex-grow: 1;
-      height: 3px;
-      background: #ddd;
-      z-index: 1;
-      margin: 0 -4px;
+    .approval-status.pending {
+      background-color: #fff3cd;
+      color: #856404;
     }
 
-    .dot[title] {
-      position: relative;
+    .approval-status.approved {
+      background-color: #d4edda;
+      color: #155724;
     }
 
-    .dot[title]:hover::after {
-      content: attr(title);
-      position: absolute;
-      top: -28px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #131921;
-      color: white;
-      padding: 5px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-      white-space: nowrap;
+    .approval-status.rejected {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
+    .approval-remarks {
+      font-style: italic;
+      color: #666;
+      margin-top: 3px;
+      font-size: 11px;
+      padding-left: 0;
+      border-left: none;
+    }
+
+    .approval-remarks strong {
+      color: #131921;
+      font-weight: bold;
+      font-size: 11px;
+      margin-right: 3px;
+    }
+
+    .final-status-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 5px;
+      font-size: 13px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .final-status-badge.approved {
+      background-color: #d4edda;
+      color: #155724;
+      border: 2px solid #28a745;
+    }
+
+    .final-status-badge.rejected {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 2px solid #dc3545;
+    }
+
+    .final-status-badge.pending {
+      background-color: #fff3cd;
+      color: #856404;
+      border: 2px solid #ffc107;
     }
 
     .form-header {
@@ -372,11 +368,11 @@ $tab = isset($_GET['tab']) ? $_GET['tab'] : 'profile';
       border: 2px solid #febd69; 
     }
 
-   .profile-row {
+    .profile-row {
       text-align: center;
     }
 
-   .profile-field {
+    .profile-field {
       background-color: white;
       padding: 15px; 
       border-radius: 6px;
@@ -385,7 +381,7 @@ $tab = isset($_GET['tab']) ? $_GET['tab'] : 'profile';
       margin-bottom: 10px; 
     }
 
-   .profile-field label {
+    .profile-field label {
       display: block;
       padding: 8px; 
       background-color: #eaeded;
@@ -397,22 +393,70 @@ $tab = isset($_GET['tab']) ? $_GET['tab'] : 'profile';
       margin-bottom: 5px;
     }
 
-   .profile-field label strong {
+    .profile-field label strong {
       color: #007185;
       font-weight: bold;
       font-size: 13px; 
     }
 
-    .card-effect {
-      transition: transform 0.2s, box-shadow 0.2s;
+    .filter-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+      align-items: center;
     }
 
-    .card-effect:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    .filter-select {
+      padding: 6px 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: white;
+      color: #131921;
+      font-size: 14px;
+      min-width: 120px;
     }
 
-    /* Mobile Responsiveness */
+    .filter-select:focus {
+      outline: none;
+      border-color: #FFD700;
+    }
+
+    .filter-btn {
+      background-color: #FFD700;
+      color: #131921;
+      padding: 6px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .filter-btn:hover {
+      background-color: #FFC107;
+    }
+
+    .reset-btn {
+      background-color: #6c757d;
+      color: white;
+      padding: 6px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .reset-btn:hover {
+      background-color: #5a6268;
+    }
+
     @media (max-width: 992px) {
       .sidebar {
         transform: translateX(-100%);
@@ -446,15 +490,6 @@ $tab = isset($_GET['tab']) ? $_GET['tab'] : 'profile';
       .main-panel {
         padding: 15px;
       }
-
-      .leave-cards {
-        justify-content: center;
-      }
-
-      .leave-card {
-        width: 100%;
-        max-width: 350px;
-      }
     }
 
     @media (max-width: 768px) {
@@ -479,13 +514,23 @@ $tab = isset($_GET['tab']) ? $_GET['tab'] : 'profile';
       .profile-field label {
         font-size: 13px;
       }
+
+      .filter-controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .filter-select {
+        width: 100%;
+      }
+      
+      th, td {
+        padding: 8px 5px;
+        font-size: 14px;
+      }
     }
 
     @media (max-width: 576px) {
-      .leave-card {
-        padding: 15px;
-      }
-
       .form-header h2 {
         font-size: 18px;
       }
@@ -509,7 +554,6 @@ $tab = isset($_GET['tab']) ? $_GET['tab'] : 'profile';
     <ul>
       <li data-section="profile"><i class="fas fa-user"></i> Profile</li>
       <li data-section="apply-leave"><i class="fas fa-pen"></i> Apply Leave</li>
-      <li data-section="leave-status"><i class="fas fa-check-circle"></i> Leave Status</li>
       <li data-section="leave-history"><i class="fas fa-history"></i> Leave History</li>
       <li><a href="logout.php"><i class="fas fa-power-off"></i> Logout</a></li>
     </ul>
@@ -562,7 +606,7 @@ $tab = isset($_GET['tab']) ? $_GET['tab'] : 'profile';
             <h2>APPLY LEAVE</h2>
           </div>
 
-          <form action="submit_leave.php" method="POST" class="form-container">
+          <form id="leaveForm" class="form-container">
             <div class="form-group">
               <label for="leave_type">Leave Type</label>
               <select style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; background-color: #eaeded;" name="leave_type" id="leave_type" required>
@@ -575,12 +619,14 @@ $tab = isset($_GET['tab']) ? $_GET['tab'] : 'profile';
 
             <div class="form-group">
               <label for="date_from">From Date</label>
-              <input type="date" name="date_from" id="date_from" class="form-control" required>
+              <input type="date" name="date_from" id="date_from" class="form-control" required min="<?= date('Y-m-d'); ?>">
+              <small id="date_from_error" style="color: red; display: none;">Date cannot be in the past</small>
             </div>
 
             <div class="form-group">
               <label for="date_to">To Date</label>
-              <input type="date" name="date_to" id="date_to" class="form-control" required>
+              <input type="date" name="date_to" id="date_to" class="form-control" required min="<?= date('Y-m-d'); ?>">
+              <small id="date_to_error" style="color: red; display: none;">Date cannot be before From Date</small>
             </div>
 
             <div class="form-group">
@@ -597,58 +643,6 @@ $tab = isset($_GET['tab']) ? $_GET['tab'] : 'profile';
           </form>
         </section>
 
-        <!-- Leave Status Section -->
-        <section id="leave-status" class="section <?= $tab == 'leave-status' ? 'active' : '' ?>">
-          <div class="form-header">
-            <h2>LEAVE STATUS</h2>
-          </div>
-
-          <?php
-          $stmt = $conn->prepare("SELECT id, leave_type, date_from, date_to, status, hod_status, dean_status, principal_status, rejection_reason FROM leave_requests WHERE faculty_id = ? ORDER BY id DESC");
-          $stmt->bind_param("i", $id);
-          $stmt->execute();
-          $result = $stmt->get_result();
-          $leaves = [];
-          while ($row = $result->fetch_assoc()) {
-              $leaves[] = $row;
-          }
-          $stmt->close();
-          ?>
-
-          <?php if (!empty($leaves)): ?>
-              <div class="leave-cards">
-                  <?php foreach ($leaves as $leave): ?>
-                      <div class="leave-card card-effect">
-                          <h3 style="color: #007185;"><?= htmlspecialchars($leave['leave_type']) ?></h3>
-                          <p><strong>From:</strong> <?= htmlspecialchars($leave['date_from']) ?></p>
-                          <p><strong>To:</strong> <?= htmlspecialchars($leave['date_to']) ?></p>
-                          <p><strong>Status:</strong> 
-                            <span class="status-<?= htmlspecialchars($leave['status']) ?>">
-                              <?= ucfirst($leave['status']) ?>
-                            </span>
-                          </p>
-
-                          <div class="status-timeline">
-                              <div class="dot <?= $leave['hod_status'] ?>" title="HOD: <?= ucfirst($leave['hod_status']) ?>"></div>
-                              <div class="line"></div>
-                              <div class="dot <?= $leave['dean_status'] ?>" title="Dean: <?= ucfirst($leave['dean_status']) ?>"></div>
-                              <div class="line"></div>
-                              <div class="dot <?= $leave['principal_status'] ?>" title="Principal: <?= ucfirst($leave['principal_status']) ?>"></div>
-                          </div>
-
-                          <?php if (!empty($leave['rejection_reason']) && $leave['status'] === 'rejected'): ?>
-                              <p><strong>Rejection Reason:</strong> <?= htmlspecialchars($leave['rejection_reason']) ?></p>
-                          <?php endif; ?>
-                      </div>
-                  <?php endforeach; ?>
-              </div>
-          <?php else: ?>
-              <div class="form-container">
-                <p>No leave applications found.</p>
-              </div>
-          <?php endif; ?>
-        </section>
-
         <!-- Leave History Section -->
         <section id="leave-history" class="section <?= $tab == 'leave-history' ? 'active' : '' ?>">
           <div class="form-header">
@@ -656,36 +650,160 @@ $tab = isset($_GET['tab']) ? $_GET['tab'] : 'profile';
           </div>
 
           <div class="form-container">
-            <table>
-              <tr>
-                <th>Type</th>
-                <th>From</th>
-                <th>To</th>
-                <th>Reason</th>
-                <th>Status</th>
-              </tr>
-              <?php
-              $stmt = $conn->prepare("SELECT leave_type, date_from, date_to, reason, status FROM leave_requests WHERE faculty_id = ? ORDER BY date_from DESC");
-              $stmt->bind_param("i", $id);
-              $stmt->execute();
-              $result = $stmt->get_result();
+            <!-- Filter Controls -->
+            <div class="filter-controls">
+              <select id="filterLeaveType" class="filter-select">
+                <option value="all">All Types</option>
+                <option value="Casual Leave">Casual Leave</option>
+                <option value="Medical Leave">Medical Leave</option>
+                <option value="Earned Leave">Earned Leave</option>
+              </select>
               
-              if ($result->num_rows > 0) {
-                  while ($row = $result->fetch_assoc()) {
+              <select id="filterStatus" class="filter-select">
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+              
+              <button id="applyFilter" class="filter-btn">
+                <i class="fas fa-filter"></i> Filter
+              </button>
+              
+              <button id="resetFilters" class="reset-btn">
+                <i class="fas fa-redo"></i> Reset
+              </button>
+            </div>
+
+            <div id="leaveHistoryTable">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Type</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Remarks</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php
+                  $filterLeaveType = $_GET['leave_type'] ?? 'all';
+                  $filterStatus = $_GET['status'] ?? 'all';
+                  
+                  $query = "SELECT leave_type, date_from, date_to, reason, 
+                           hod_status, hod_remarks, 
+                           dean_status, dean_remarks, 
+                           principal_status, principal_remarks
+                           FROM leave_requests WHERE faculty_id = ?";
+                  $params = [$id];
+                  $types = "i";
+                  
+                  if ($filterLeaveType !== 'all') {
+                    $query .= " AND leave_type = ?";
+                    $params[] = $filterLeaveType;
+                    $types .= "s";
+                  }
+                  
+                  $query .= " ORDER BY date_from DESC";
+                  
+                  $stmt = $conn->prepare($query);
+                  
+                  if (count($params) > 1) {
+                    $stmt->bind_param($types, ...$params);
+                  } else {
+                    $stmt->bind_param($types, $id);
+                  }
+                  
+                  $stmt->execute();
+                  $result = $stmt->get_result();
+                  
+                  if ($result->num_rows > 0) {
+                    while ($row = $result->fetch_assoc()) {
+                      $finalStatus = 'pending';
+                      
+                      $hodStatus = $row['hod_status'];
+                      $deanStatus = $row['dean_status'];
+                      $principalStatus = $row['principal_status'];
+                      
+                      if ($principalStatus === 'approved' || $principalStatus === 'rejected') {
+                        $finalStatus = $principalStatus;
+                      }
+                      elseif ($deanStatus === 'rejected') {
+                        $finalStatus = 'rejected';
+                      }
+                      elseif ($hodStatus === 'rejected') {
+                        $finalStatus = 'rejected';
+                      }
+                      elseif ($hodStatus === 'approved' && $deanStatus === 'approved' && $principalStatus === 'approved') {
+                        $finalStatus = 'approved';
+                      }
+                      else {
+                        $finalStatus = 'pending';
+                      }
+                      
+                      if (isset($filterStatus) && $filterStatus !== 'all' && $filterStatus !== $finalStatus) {
+                        continue;
+                      }
+                      
                       echo '<tr>';
                       echo '<td>' . htmlspecialchars($row['leave_type']) . '</td>';
-                      echo '<td>' . htmlspecialchars($row['date_from']) . '</td>';
-                      echo '<td>' . htmlspecialchars($row['date_to']) . '</td>';
+                      echo '<td>' . $row['date_from'] . '</td>';
+                      echo '<td>' . $row['date_to'] . '</td>';
                       echo '<td>' . htmlspecialchars($row['reason']) . '</td>';
-                      echo '<td><span class="status-text-' . htmlspecialchars($row['status']) . '">' . ucfirst(htmlspecialchars($row['status'])) . '</span></td>';
+                      
+                      echo '<td style="text-align: center;">';
+                      echo '<span class="final-status-badge ' . $finalStatus . '">' . ucfirst($finalStatus) . '</span>';
+                      echo '</td>';
+                      
+                      echo '<td>';
+                      echo '<div class="approval-hierarchy">';
+                      
+                      echo '<div class="approval-item">';
+                      echo '<div class="approval-header">';
+                      echo '<span class="approval-authority">HOD:</span>';
+                      echo '<span class="approval-status ' . $row['hod_status'] . '">' . ucfirst($row['hod_status']) . '</span>';
+                      echo '</div>';
+                      if (!empty($row['hod_remarks'])) {
+                        echo '<div class="approval-remarks"><strong>Remarks:</strong> ' . htmlspecialchars($row['hod_remarks']) . '</div>';
+                      }
+                      echo '</div>';
+                      
+                      echo '<div class="approval-item">';
+                      echo '<div class="approval-header">';
+                      echo '<span class="approval-authority">Dean:</span>';
+                      echo '<span class="approval-status ' . $row['dean_status'] . '">' . ucfirst($row['dean_status']) . '</span>';
+                      echo '</div>';
+                      if (!empty($row['dean_remarks'])) {
+                        echo '<div class="approval-remarks"><strong>Remarks:</strong> ' . htmlspecialchars($row['dean_remarks']) . '</div>';
+                      }
+                      echo '</div>';
+                      
+                      echo '<div class="approval-item">';
+                      echo '<div class="approval-header">';
+                      echo '<span class="approval-authority">Principal:</span>';
+                      echo '<span class="approval-status ' . $row['principal_status'] . '">' . ucfirst($row['principal_status']) . '</span>';
+                      echo '</div>';
+                      if (!empty($row['principal_remarks'])) {
+                        echo '<div class="approval-remarks"><strong>Remarks:</strong> ' . htmlspecialchars($row['principal_remarks']) . '</div>';
+                      }
+                      echo '</div>';
+                      
+                      echo '</div>';
+                      echo '</td>';
+                      
                       echo '</tr>';
+                    }
+                  } else {
+                    echo '<tr><td colspan="6">No leave history found.</td></tr>';
                   }
-              } else {
-                  echo '<tr><td colspan="5">No leave history found.</td></tr>';
-              }
-              $stmt->close();
-              ?>
-            </table>
+                  
+                  $stmt->close();
+                  ?>
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
       </div>
@@ -693,13 +811,117 @@ $tab = isset($_GET['tab']) ? $_GET['tab'] : 'profile';
   </div>
 
   <script>
-    // Handle tab switching
+    const today = new Date().toISOString().split('T')[0];
+    
+    document.getElementById('date_from').min = today;
+    document.getElementById('date_to').min = today;
+    
+    document.getElementById('date_from').addEventListener('change', function() {
+      const fromDate = this.value;
+      const toDateInput = document.getElementById('date_to');
+      const errorFrom = document.getElementById('date_from_error');
+      
+      errorFrom.style.display = 'none';
+      
+      if (fromDate < today) {
+        errorFrom.textContent = 'Date cannot be in the past';
+        errorFrom.style.display = 'block';
+        this.value = today;
+      } else {
+        toDateInput.min = fromDate;
+        
+        if (toDateInput.value && toDateInput.value < fromDate) {
+          toDateInput.value = fromDate;
+        }
+      }
+    });
+    
+    document.getElementById('date_to').addEventListener('change', function() {
+      const fromDate = document.getElementById('date_from').value;
+      const toDate = this.value;
+      const errorTo = document.getElementById('date_to_error');
+      
+      errorTo.style.display = 'none';
+      
+      if (toDate < fromDate) {
+        errorTo.textContent = 'Date cannot be before From Date';
+        errorTo.style.display = 'block';
+        this.value = fromDate;
+      }
+      
+      if (toDate < today) {
+        errorTo.textContent = 'Date cannot be in the past';
+        errorTo.style.display = 'block';
+        this.value = today;
+      }
+    });
+    
+    document.getElementById('leaveForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const form = this;
+      const formData = new FormData(form);
+      
+      const fromDate = document.getElementById('date_from').value;
+      const toDate = document.getElementById('date_to').value;
+      const leaveType = document.getElementById('leave_type').value;
+      const reason = document.getElementById('reason').value;
+      
+      if (!leaveType) {
+        alert('Please select a leave type');
+        return;
+      }
+      
+      if (!reason.trim()) {
+        alert('Please enter a reason for leave');
+        return;
+      }
+      
+      if (fromDate < today || toDate < today) {
+        alert('Cannot select dates in the past');
+        return;
+      }
+      
+      if (toDate < fromDate) {
+        alert('To Date cannot be before From Date');
+        return;
+      }
+      
+      const submitBtn = form.querySelector('.submit-btn');
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Submitting...';
+      submitBtn.disabled = true;
+      
+      fetch('submit_leave.php', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.text())
+      .then(data => {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        
+        alert(data);
+        
+        if (data.includes('successfully')) {
+          form.reset();
+          document.getElementById('date_from').min = today;
+          document.getElementById('date_to').min = today;
+          window.location.href = '?tab=leave-history';
+        }
+      })
+      .catch(error => {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        alert('Network error: ' + error.message);
+      });
+    });
+
     document.querySelectorAll('.sidebar ul li').forEach(item => {
       item.addEventListener('click', function() {
         const section = this.getAttribute('data-section');
         if (section && section !== 'logout') {
           window.location.href = `?tab=${section}`;
-          // Close sidebar on mobile after selection
           if (window.innerWidth <= 992) {
             document.getElementById('sidebar').classList.remove('active');
           }
@@ -707,12 +929,10 @@ $tab = isset($_GET['tab']) ? $_GET['tab'] : 'profile';
       });
     });
 
-    // Toggle sidebar on mobile
     document.getElementById('sidebarToggle').addEventListener('click', function() {
       document.getElementById('sidebar').classList.toggle('active');
     });
 
-    // Close sidebar when clicking outside on mobile
     document.addEventListener('click', function(event) {
       const sidebar = document.getElementById('sidebar');
       const sidebarToggle = document.getElementById('sidebarToggle');
@@ -723,6 +943,35 @@ $tab = isset($_GET['tab']) ? $_GET['tab'] : 'profile';
           sidebar.classList.contains('active')) {
         sidebar.classList.remove('active');
       }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const filterLeaveType = document.getElementById('filterLeaveType');
+      const filterStatus = document.getElementById('filterStatus');
+      const applyFilter = document.getElementById('applyFilter');
+      const resetFilters = document.getElementById('resetFilters');
+      
+      const urlParams = new URLSearchParams(window.location.search);
+      const currentLeaveType = urlParams.get('leave_type') || 'all';
+      const currentStatus = urlParams.get('status') || 'all';
+      
+      filterLeaveType.value = currentLeaveType;
+      filterStatus.value = currentStatus;
+      
+      applyFilter.addEventListener('click', function() {
+        const leaveType = filterLeaveType.value;
+        const status = filterStatus.value;
+        
+        let url = '?tab=leave-history';
+        if (leaveType !== 'all') url += '&leave_type=' + encodeURIComponent(leaveType);
+        if (status !== 'all') url += '&status=' + encodeURIComponent(status);
+        
+        window.location.href = url;
+      });
+      
+      resetFilters.addEventListener('click', function() {
+        window.location.href = '?tab=leave-history';
+      });
     });
   </script>
 </body>

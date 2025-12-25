@@ -17,31 +17,32 @@ $stmt->bind_result($id, $name, $username, $role, $department, $photo, $email, $p
 $stmt->fetch();
 $stmt->close();
 
-$tab = $_GET['tab'] ?? 'profile';
-$active_sub_tab = $_GET['sub_tab'] ?? 'faculty-requests'; // Track active sub-tab
+// Default to leave-requests
+$tab = $_GET['tab'] ?? 'leave-requests';
+$active_sub_tab = $_GET['sub_tab'] ?? 'faculty-requests';
 
 // Handle approvals
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_id'], $_POST['action'])) {
     $leave_id = (int) $_POST['leave_id'];
     $action = $_POST['action'];
     $current_sub_tab = $_POST['active_sub_tab'] ?? 'faculty-requests';
+    $remarks = $_POST['remarks'] ?? '';
 
     if ($action === 'approve') {
         $status = 'approved';
-        $stmt = $conn->prepare("UPDATE leave_requests SET principal_status = ?, status = ? WHERE id = ?");
-        $stmt->bind_param("ssi", $status, $status, $leave_id);
+        $stmt = $conn->prepare("UPDATE leave_requests SET principal_status = ?, principal_remarks = ?, status = ? WHERE id = ?");
+        $stmt->bind_param("sssi", $status, $remarks, $status, $leave_id);
         $stmt->execute();
         $stmt->close();
-    } elseif ($action === 'reject' && !empty($_POST['rejection_reason'])) {
+    } elseif ($action === 'reject') {
         $status = 'rejected';
-        $rejection_reason = $_POST['rejection_reason'];
-        $stmt = $conn->prepare("UPDATE leave_requests SET principal_status = ?, status = ?, rejection_reason = ? WHERE id = ?");
-        $stmt->bind_param("sssi", $status, $status, $rejection_reason, $leave_id);
+        $stmt = $conn->prepare("UPDATE leave_requests SET principal_status = ?, principal_remarks = ?, status = ? WHERE id = ?");
+        $stmt->bind_param("sssi", $status, $remarks, $status, $leave_id);
         $stmt->execute();
         $stmt->close();
     }
 
-    // Redirect back to the same tab
+    // Redirect back to same tab
     header("Location: principal_home.php?tab=leave-requests&sub_tab=" . $current_sub_tab);
     exit();
 }
@@ -53,8 +54,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_id'], $_POST['a
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Principal Dashboard</title>
+
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
   <style>
     body {
       display: flex;
@@ -209,6 +213,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_id'], $_POST['a
       text-align: left;
       padding: 10px;
       border-bottom: 1px solid #ddd;
+      vertical-align: top;
     }
 
     th {
@@ -222,109 +227,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_id'], $_POST['a
 
     tr:hover {
       background-color: #e6e6e6;
-    }
-
-    .status-text-pending { color: #facc15; font-weight: bold;}
-    .status-text-approved { color: #16a34a; font-weight: bold; }
-    .status-text-rejected { color: #dc2626; font-weight: bold; }
-
-    .status-pending {
-      background-color: #facc15;
-      color: #131921;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 13px;
-      font-weight: bold;
-    }
-
-    .status-approved {
-      background-color: #16a34a;
-      color: white;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 13px;
-      font-weight: bold;
-    }
-
-    .status-rejected {
-      background-color: #dc2626;
-      color: white;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 13px;
-      font-weight: bold;
-    }
-
-    .leave-cards {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      margin-top: 30px;
-    }
-
-    .leave-card {
-      background: white;
-      border-radius: 10px;
-      padding: 20px;
-      width: 320px;
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08), 
-            0 -6px 12px rgba(0, 0, 0, 0.08);
-      transition: transform 0.3s ease;
-      border: 1px solid #ddd;
-    }
-
-    .leave-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-    }
-
-    .status-timeline {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 15px;
-      position: relative;
-      padding: 0 10px;
-    }
-
-    .status-timeline .dot {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      border: 3px solid #ddd;
-      background-color: #ccc;
-      position: relative;
-      z-index: 2;
-    }
-
-    .status-timeline .dot.approved { background-color: #16a34a; }
-    .status-timeline .dot.rejected { background-color: #dc2626; }
-    .status-timeline .dot.pending { background-color: #facc15; }
-
-    .status-timeline .line {
-      flex-grow: 1;
-      height: 3px;
-      background: #ddd;
-      z-index: 1;
-      margin: 0 -4px;
-    }
-
-    .dot[title] {
-      position: relative;
-    }
-
-    .dot[title]:hover::after {
-      content: attr(title);
-      position: absolute;
-      top: -28px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #131921;
-      color: white;
-      padding: 5px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-      white-space: nowrap;
     }
 
     .form-header {
@@ -400,11 +302,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_id'], $_POST['a
       border: 2px solid #febd69; 
     }
 
-   .profile-row {
+    .profile-row {
       text-align: center;
     }
 
-   .profile-field {
+    .profile-field {
       background-color: white;
       padding: 15px; 
       border-radius: 6px;
@@ -413,7 +315,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_id'], $_POST['a
       margin-bottom: 10px; 
     }
 
-   .profile-field label {
+    .profile-field label {
       display: block;
       padding: 8px; 
       background-color: #eaeded;
@@ -425,48 +327,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_id'], $_POST['a
       margin-bottom: 5px;
     }
 
-   .profile-field label strong {
+    .profile-field label strong {
       color: #007185;
       font-weight: bold;
       font-size: 13px; 
     }
 
-    .card-effect {
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .card-effect:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-    }
-
-    /* Action buttons */
-    .action-btn {
-      padding: 6px 12px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      margin-right: 5px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-      color: white;
-    }
-    
-    .approve-btn {
-      background-color: green;
-    }
-    
-    .reject-btn {
-      background-color: red;
-    }
-    
-    .rejection-input {
-      padding: 5px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      margin-right: 5px;
-    }
-
-    /* Request type tabs */
+    /* Request Tabs */
     .request-tabs {
       display: flex;
       margin-bottom: 20px;
@@ -492,6 +359,139 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_id'], $_POST['a
     
     .request-content.active {
       display: block;
+    }
+
+    /* Inline remarks textbox */
+    .remarks-textbox {
+        width: 80%;
+        padding: 6px 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 13px;
+        resize: vertical;
+        min-height: 60px;
+        max-height: 100px;
+    }
+
+    .remarks-textbox:focus {
+        outline: none;
+        border-color: #000;
+        border-width: 1.75px;
+    }
+
+    .compact-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .compact-btn {
+        padding: 6px 10px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: bold;
+        width: 100%;
+        text-align: center;
+    }
+
+    .compact-approve {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .compact-reject {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .compact-btn:hover {
+        opacity: 0.9;
+    }
+
+    /* Already processed status */
+    .processed-status {
+        color: #6c757d;
+        font-weight: normal;
+        font-style: italic;
+    }
+
+    /* Status column styling */
+    .status-column {
+        line-height: 1.6;
+    }
+
+    .approval-status {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: bold;
+      margin-right: 5px;
+    }
+
+    .approval-status.pending {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+
+    .approval-status.approved {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .approval-status.rejected {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
+    /* Approval Hierarchy Styling */
+    .approval-hierarchy {
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .approval-item {
+      margin-bottom: 8px;
+      padding: 6px;
+      border-radius: 4px;
+      background-color: #f8f9fa;
+    }
+
+    .approval-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .approval-authority {
+      font-weight: bold;
+      color: #131921;
+      display: inline;
+      margin-bottom: 0;
+      margin-right: 5px;
+    }
+
+    .approval-header {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 3px;
+    }
+
+    .approval-remarks {
+      font-style: italic;
+      color: #666;
+      margin-top: 3px;
+      font-size: 11px;
+      padding-left: 0;
+      border-left: none;
+    }
+
+    .approval-remarks strong {
+      color: #131921;
+      font-weight: bold;
+      font-size: 11px;
+      margin-right: 3px;
     }
 
     /* Mobile Responsiveness */
@@ -529,13 +529,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_id'], $_POST['a
         padding: 15px;
       }
 
-      .leave-cards {
-        justify-content: center;
+      table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
       }
 
-      .leave-card {
-        width: 100%;
-        max-width: 350px;
+      .profile-field label {
+        font-size: 13px;
+      }
+      
+      th, td {
+        padding: 8px 5px;
+        font-size: 14px;
       }
     }
 
@@ -552,22 +558,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_id'], $_POST['a
         width: 97.5%;
       }
 
-      table {
-        display: block;
-        overflow-x: auto;
-        white-space: nowrap;
+      .request-tab { 
+        padding: 8px 12px; 
+        font-size: 14px;
       }
 
-      .profile-field label {
-        font-size: 13px;
+      .compact-actions {
+        flex-direction: row;
+      }
+      .compact-btn {
+        padding: 6px 8px;
+        font-size: 12px;
       }
     }
 
     @media (max-width: 576px) {
-      .leave-card {
-        padding: 15px;
-      }
-
       .form-header h2 {
         font-size: 18px;
       }
@@ -638,55 +643,122 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_id'], $_POST['a
 
         <!-- Leave Requests Section -->
         <section id="leave-requests" class="section <?= $tab == 'leave-requests' ? 'active' : '' ?>">
-          <div class="form-header">
-            <h2>LEAVE REQUESTS</h2>
-          </div>
+          <div class="form-header"><h2>LEAVE REQUESTS</h2></div>
 
+          <!-- Request Tabs -->
           <div class="request-tabs">
             <div class="request-tab <?= $active_sub_tab == 'faculty-requests' ? 'active' : '' ?>" data-target="faculty-requests">Faculty Requests</div>
             <div class="request-tab <?= $active_sub_tab == 'hod-requests' ? 'active' : '' ?>" data-target="hod-requests">HOD Requests</div>
             <div class="request-tab <?= $active_sub_tab == 'dean-requests' ? 'active' : '' ?>" data-target="dean-requests">Dean Requests</div>
           </div>
 
+          <!-- Faculty Requests -->
           <div id="faculty-requests" class="request-content <?= $active_sub_tab == 'faculty-requests' ? 'active' : '' ?>">
             <?php
-            $stmt = $conn->prepare("SELECT lr.id, u.name, lr.leave_type, lr.date_from, lr.date_to, lr.reason 
-                        FROM leave_requests lr 
-                        JOIN users u ON lr.faculty_id = u.id 
-                        WHERE lr.principal_status = 'pending' AND u.role = 'faculty'");
+            $stmt = $conn->prepare("SELECT lr.id, u.name, u.department, lr.leave_type, lr.date_from, lr.date_to, lr.reason, 
+                           lr.status, lr.hod_status, lr.dean_status, lr.principal_status, 
+                           lr.hod_remarks, lr.dean_remarks, lr.principal_remarks 
+                           FROM leave_requests lr 
+                           JOIN users u ON lr.faculty_id = u.id 
+                           WHERE lr.principal_status = 'pending' AND u.role = 'faculty'");
             $stmt->execute();
             $result = $stmt->get_result();
             ?>
-            
+
             <?php if ($result->num_rows > 0): ?>
               <table>
                 <tr>
                   <th>Name</th>
+                  <th>Department</th>
                   <th>Type</th>
                   <th>From</th>
                   <th>To</th>
                   <th>Reason</th>
+                  <th>Status</th>
                   <th>Actions</th>
+                  <th>Remarks</th>
                 </tr>
                 <?php while ($row = $result->fetch_assoc()): ?>
                   <tr>
                     <td><?= htmlspecialchars($row['name']) ?></td>
+                    <td><?= htmlspecialchars($row['department']) ?></td>
                     <td><?= htmlspecialchars($row['leave_type']) ?></td>
                     <td><?= $row['date_from'] ?></td>
                     <td><?= $row['date_to'] ?></td>
                     <td><?= htmlspecialchars($row['reason']) ?></td>
+                    <td class="status-column">
+                      <div class="approval-hierarchy">
+                        <!-- HOD Status -->
+                        <div class="approval-item">
+                          <div class="approval-header">
+                            <span class="approval-authority">HOD:</span>
+                            <span class="approval-status <?= $row['hod_status'] ?>"><?= ucfirst($row['hod_status']) ?></span>
+                          </div>
+                          <?php if (!empty($row['hod_remarks'])): ?>
+                            <div class="approval-remarks"><strong>Remarks:</strong> <?= htmlspecialchars($row['hod_remarks']) ?></div>
+                          <?php endif; ?>
+                        </div>
+                        
+                        <!-- Dean Status -->
+                        <div class="approval-item">
+                          <div class="approval-header">
+                            <span class="approval-authority">Dean:</span>
+                            <span class="approval-status <?= $row['dean_status'] ?>"><?= ucfirst($row['dean_status']) ?></span>
+                          </div>
+                          <?php if (!empty($row['dean_remarks'])): ?>
+                            <div class="approval-remarks"><strong>Remarks:</strong> <?= htmlspecialchars($row['dean_remarks']) ?></div>
+                          <?php endif; ?>
+                        </div>
+                        
+                        <!-- Principal Status -->
+                        <div class="approval-item">
+                          <div class="approval-header">
+                            <span class="approval-authority">Principal:</span>
+                            <span class="approval-status pending">Pending</span>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
                     <td>
-                      <form method="POST" style="display:inline;">
-                        <input type="hidden" name="leave_id" value="<?= $row['id']; ?>">
-                        <input type="hidden" name="active_sub_tab" value="faculty-requests"> 
-                        <button class="action-btn approve-btn" name="action" value="approve">Approve</button>
-                      </form>
-                      <form method="POST" style="display:inline;">
-                        <input type="hidden" name="leave_id" value="<?= $row['id']; ?>">
-                        <input type="hidden" name="active_sub_tab" value="faculty-requests"> 
-                        <input type="text" name="rejection_reason" placeholder="Rejection reason" required class="rejection-input">
-                        <button class="action-btn reject-btn" name="action" value="reject">Reject</button>
-                      </form>
+                      <?php if ($row['principal_status'] === 'pending'): ?>
+                        <div class="compact-actions">
+                          <form method="POST" style="margin: 0;" onsubmit="return submitWithRemarks('approve', this)">
+                            <input type="hidden" name="leave_id" value="<?= $row['id']; ?>">
+                            <input type="hidden" name="active_sub_tab" value="faculty-requests">
+                            <input type="hidden" name="action" value="approve">
+                            <button type="submit" class="compact-btn compact-approve">Approve</button>
+                          </form>
+                          
+                          <form method="POST" style="margin: 0;" onsubmit="return submitWithRemarks('reject', this)">
+                            <input type="hidden" name="leave_id" value="<?= $row['id']; ?>">
+                            <input type="hidden" name="active_sub_tab" value="faculty-requests">
+                            <input type="hidden" name="action" value="reject">
+                            <button type="submit" class="compact-btn compact-reject">Reject</button>
+                          </form>
+                        </div>
+                      <?php else: ?>
+                        <span class="processed-status">
+                          <?= ucfirst($row['principal_status']) ?> by Principal
+                        </span>
+                      <?php endif; ?>
+                    </td>
+                    <td>
+                      <?php if ($row['principal_status'] === 'pending'): ?>
+                        <textarea 
+                          name="remarks_<?= $row['id']; ?>" 
+                          class="remarks-textbox" 
+                          placeholder="Remarks"
+                          data-leave-id="<?= $row['id']; ?>"></textarea>
+                      <?php else: ?>
+                        <?php if (!empty($row['principal_remarks'])): ?>
+                          <div style="font-size: 13px; color: #000;">
+                            <strong>Your Remarks:</strong><br>
+                            <?= htmlspecialchars($row['principal_remarks']) ?>
+                          </div>
+                        <?php else: ?>
+                          <span style="color: #999; font-style: italic;">-</span>
+                        <?php endif; ?>
+                      <?php endif; ?>
                     </td>
                   </tr>
                 <?php endwhile; ?>
@@ -699,45 +771,102 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_id'], $_POST['a
             <?php $stmt->close(); ?>
           </div>
 
+          <!-- HOD Requests -->
           <div id="hod-requests" class="request-content <?= $active_sub_tab == 'hod-requests' ? 'active' : '' ?>">
             <?php
-            $stmt = $conn->prepare("SELECT lr.id, u.name, lr.leave_type, lr.date_from, lr.date_to, lr.reason 
-                        FROM leave_requests lr 
-                        JOIN users u ON lr.faculty_id = u.id 
-                        WHERE lr.principal_status = 'pending' AND u.role = 'hod'");
+            $stmt = $conn->prepare("SELECT lr.id, u.name, u.department, lr.leave_type, lr.date_from, lr.date_to, lr.reason, 
+                           lr.status, lr.hod_status, lr.dean_status, lr.principal_status, 
+                           lr.hod_remarks, lr.dean_remarks, lr.principal_remarks 
+                           FROM leave_requests lr 
+                           JOIN users u ON lr.faculty_id = u.id 
+                           WHERE lr.principal_status = 'pending' AND u.role = 'hod'");
             $stmt->execute();
             $result = $stmt->get_result();
             ?>
-            
+
             <?php if ($result->num_rows > 0): ?>
               <table>
                 <tr>
                   <th>Name</th>
+                  <th>Department</th>
                   <th>Type</th>
                   <th>From</th>
                   <th>To</th>
                   <th>Reason</th>
+                  <th>Status</th>
                   <th>Actions</th>
+                  <th>Remarks</th>
                 </tr>
                 <?php while ($row = $result->fetch_assoc()): ?>
                   <tr>
                     <td><?= htmlspecialchars($row['name']) ?></td>
+                    <td><?= htmlspecialchars($row['department']) ?></td>
                     <td><?= htmlspecialchars($row['leave_type']) ?></td>
                     <td><?= $row['date_from'] ?></td>
                     <td><?= $row['date_to'] ?></td>
                     <td><?= htmlspecialchars($row['reason']) ?></td>
+                    <td class="status-column">
+                      <div class="approval-hierarchy">
+                         <!-- Dean Status -->
+                        <div class="approval-item">
+                          <div class="approval-header">
+                            <span class="approval-authority">Dean:</span>
+                            <span class="approval-status <?= $row['dean_status'] ?>"><?= ucfirst($row['dean_status']) ?></span>
+                          </div>
+                          <?php if (!empty($row['dean_remarks'])): ?>
+                            <div class="approval-remarks"><strong>Remarks:</strong> <?= htmlspecialchars($row['dean_remarks']) ?></div>
+                          <?php endif; ?>
+                        </div>
+                        
+                        <!-- Principal Status -->
+                        <div class="approval-item">
+                          <div class="approval-header">
+                            <span class="approval-authority">Principal:</span>
+                            <span class="approval-status pending">Pending</span>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
                     <td>
-                      <form method="POST" style="display:inline;">
-                        <input type="hidden" name="leave_id" value="<?= $row['id']; ?>">
-                        <input type="hidden" name="active_sub_tab" value="hod-requests"> 
-                        <button class="action-btn approve-btn" name="action" value="approve">Approve</button>
-                      </form>
-                      <form method="POST" style="display:inline;">
-                        <input type="hidden" name="leave_id" value="<?= $row['id']; ?>">
-                        <input type="hidden" name="active_sub_tab" value="hod-requests"> 
-                        <input type="text" name="rejection_reason" placeholder="Rejection reason" required class="rejection-input">
-                        <button class="action-btn reject-btn" name="action" value="reject">Reject</button>
-                      </form>
+                      <?php if ($row['principal_status'] === 'pending'): ?>
+                        <div class="compact-actions">
+                          <form method="POST" style="margin: 0;" onsubmit="return submitWithRemarks('approve', this)">
+                            <input type="hidden" name="leave_id" value="<?= $row['id']; ?>">
+                            <input type="hidden" name="active_sub_tab" value="hod-requests">
+                            <input type="hidden" name="action" value="approve">
+                            <button type="submit" class="compact-btn compact-approve">Approve</button>
+                          </form>
+                          
+                          <form method="POST" style="margin: 0;" onsubmit="return submitWithRemarks('reject', this)">
+                            <input type="hidden" name="leave_id" value="<?= $row['id']; ?>">
+                            <input type="hidden" name="active_sub_tab" value="hod-requests">
+                            <input type="hidden" name="action" value="reject">
+                            <button type="submit" class="compact-btn compact-reject">Reject</button>
+                          </form>
+                        </div>
+                      <?php else: ?>
+                        <span class="processed-status">
+                          <?= ucfirst($row['principal_status']) ?> by Principal
+                        </span>
+                      <?php endif; ?>
+                    </td>
+                    <td>
+                      <?php if ($row['principal_status'] === 'pending'): ?>
+                        <textarea 
+                          name="remarks_<?= $row['id']; ?>" 
+                          class="remarks-textbox" 
+                          placeholder="Remarks"
+                          data-leave-id="<?= $row['id']; ?>"></textarea>
+                      <?php else: ?>
+                        <?php if (!empty($row['principal_remarks'])): ?>
+                          <div style="font-size: 13px; color: #000;">
+                            <strong>Your Remarks:</strong><br>
+                            <?= htmlspecialchars($row['principal_remarks']) ?>
+                          </div>
+                        <?php else: ?>
+                          <span style="color: #999; font-style: italic;">-</span>
+                        <?php endif; ?>
+                      <?php endif; ?>
                     </td>
                   </tr>
                 <?php endwhile; ?>
@@ -750,45 +879,83 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_id'], $_POST['a
             <?php $stmt->close(); ?>
           </div>
 
+          <!-- Dean Requests -->
           <div id="dean-requests" class="request-content <?= $active_sub_tab == 'dean-requests' ? 'active' : '' ?>">
             <?php
-           $stmt = $conn->prepare("SELECT lr.id, u.name, lr.leave_type, lr.date_from, lr.date_to, lr.reason 
-                        FROM leave_requests lr 
-                        JOIN users u ON lr.faculty_id = u.id 
-                        WHERE lr.principal_status = 'pending' AND u.role = 'dean'");
+            $stmt = $conn->prepare("SELECT lr.id, u.name, u.department, lr.leave_type, lr.date_from, lr.date_to, lr.reason, 
+                           lr.status, lr.hod_status, lr.dean_status, lr.principal_status, 
+                           lr.hod_remarks, lr.dean_remarks, lr.principal_remarks 
+                           FROM leave_requests lr 
+                           JOIN users u ON lr.faculty_id = u.id 
+                           WHERE lr.principal_status = 'pending' AND u.role = 'dean'");
             $stmt->execute();
             $result = $stmt->get_result();
             ?>
-            
+
             <?php if ($result->num_rows > 0): ?>
               <table>
                 <tr>
                   <th>Name</th>
+                  <th>Department</th>
                   <th>Type</th>
                   <th>From</th>
                   <th>To</th>
                   <th>Reason</th>
+                  <th>Status</th>
                   <th>Actions</th>
+                  <th>Remarks</th>
                 </tr>
                 <?php while ($row = $result->fetch_assoc()): ?>
                   <tr>
                     <td><?= htmlspecialchars($row['name']) ?></td>
+                    <td><?= htmlspecialchars($row['department']) ?></td>
                     <td><?= htmlspecialchars($row['leave_type']) ?></td>
                     <td><?= $row['date_from'] ?></td>
                     <td><?= $row['date_to'] ?></td>
                     <td><?= htmlspecialchars($row['reason']) ?></td>
+                    <td class="status-column">
+                      <span class="approval-status pending">Pending</span>
+                    </td>
                     <td>
-                      <form method="POST" style="display:inline;">
-                        <input type="hidden" name="leave_id" value="<?= $row['id']; ?>">
-                        <input type="hidden" name="active_sub_tab" value="dean-requests"> 
-                        <button class="action-btn approve-btn" name="action" value="approve">Approve</button>
-                      </form>
-                      <form method="POST" style="display:inline;">
-                        <input type="hidden" name="leave_id" value="<?= $row['id']; ?>">
-                        <input type="hidden" name="active_sub_tab" value="dean-requests"> 
-                        <input type="text" name="rejection_reason" placeholder="Rejection reason" required class="rejection-input">
-                        <button class="action-btn reject-btn" name="action" value="reject">Reject</button>
-                      </form>
+                      <?php if ($row['principal_status'] === 'pending'): ?>
+                        <div class="compact-actions">
+                          <form method="POST" style="margin: 0;" onsubmit="return submitWithRemarks('approve', this)">
+                            <input type="hidden" name="leave_id" value="<?= $row['id']; ?>">
+                            <input type="hidden" name="active_sub_tab" value="dean-requests">
+                            <input type="hidden" name="action" value="approve">
+                            <button type="submit" class="compact-btn compact-approve">Approve</button>
+                          </form>
+                          
+                          <form method="POST" style="margin: 0;" onsubmit="return submitWithRemarks('reject', this)">
+                            <input type="hidden" name="leave_id" value="<?= $row['id']; ?>">
+                            <input type="hidden" name="active_sub_tab" value="dean-requests">
+                            <input type="hidden" name="action" value="reject">
+                            <button type="submit" class="compact-btn compact-reject">Reject</button>
+                          </form>
+                        </div>
+                      <?php else: ?>
+                        <span class="processed-status">
+                          <?= ucfirst($row['principal_status']) ?> by Principal
+                        </span>
+                      <?php endif; ?>
+                    </td>
+                    <td>
+                      <?php if ($row['principal_status'] === 'pending'): ?>
+                        <textarea 
+                          name="remarks_<?= $row['id']; ?>" 
+                          class="remarks-textbox" 
+                          placeholder="Remarks"
+                          data-leave-id="<?= $row['id']; ?>"></textarea>
+                      <?php else: ?>
+                        <?php if (!empty($row['principal_remarks'])): ?>
+                          <div style="font-size: 13px; color: #000;">
+                            <strong>Your Remarks:</strong><br>
+                            <?= htmlspecialchars($row['principal_remarks']) ?>
+                          </div>
+                        <?php else: ?>
+                          <span style="color: #999; font-style: italic;">-</span>
+                        <?php endif; ?>
+                      <?php endif; ?>
                     </td>
                   </tr>
                 <?php endwhile; ?>
@@ -806,13 +973,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_id'], $_POST['a
   </div>
 
   <script>
-    // Handle tab switching
+    // Sidebar navigation
     document.querySelectorAll('.sidebar ul li').forEach(item => {
       item.addEventListener('click', function() {
         const section = this.getAttribute('data-section');
         if (section && section !== 'logout') {
-          window.location.href = `?tab=${section}`;
-          // Close sidebar on mobile after selection
+          let url = `?tab=${section}`;
+          
+          if (section === 'leave-requests') {
+            url += '&sub_tab=faculty-requests';
+          }
+          
+          window.location.href = url;
+          
           if (window.innerWidth <= 992) {
             document.getElementById('sidebar').classList.remove('active');
           }
@@ -820,12 +993,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_id'], $_POST['a
       });
     });
 
-    // Toggle sidebar on mobile
     document.getElementById('sidebarToggle').addEventListener('click', function() {
       document.getElementById('sidebar').classList.toggle('active');
     });
 
-    // Close sidebar when clicking outside on mobile
     document.addEventListener('click', function(event) {
       const sidebar = document.getElementById('sidebar');
       const sidebarToggle = document.getElementById('sidebarToggle');
@@ -838,55 +1009,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['leave_id'], $_POST['a
       }
     });
 
-    // Handle request type tabs
     document.addEventListener('DOMContentLoaded', function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const activeSubTabFromUrl = urlParams.get('sub_tab');
+      const urlParams = new URLSearchParams(window.location.search);
+      const currentTab = urlParams.get('tab') || 'leave-requests';
+      const activeSubTabFromUrl = urlParams.get('sub_tab');
 
-        // Remove active class from all tabs and contents initially
-        document.querySelectorAll('.request-tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.request-content').forEach(c => c.classList.remove('active'));
+      // Highlight active sidebar item
+      const activeSidebarItem = document.querySelector(`.sidebar ul li[data-section="${currentTab}"]`);
+      if (activeSidebarItem) {
+        activeSidebarItem.classList.add('active');
+      }
 
-        if (activeSubTabFromUrl) {
-            // Activate the tab and content based on URL parameter
-            const targetTab = document.querySelector(`.request-tab[data-target="${activeSubTabFromUrl}"]`);
-            const targetContent = document.getElementById(activeSubTabFromUrl);
+      document.querySelectorAll('.request-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.request-content').forEach(c => c.classList.remove('active'));
 
-            if (targetTab) {
-                targetTab.classList.add('active');
-            }
-            if (targetContent) {
-                targetContent.classList.add('active');
-            }
-        } else {
-            // If no sub_tab parameter, default to 'faculty-requests' for leave-requests tab
-            const currentMainTab = urlParams.get('tab');
-            if (currentMainTab === 'leave-requests') {
-                document.querySelector('.request-tab[data-target="faculty-requests"]').classList.add('active');
-                document.getElementById('faculty-requests').classList.add('active');
-            }
-        }
+      // Show faculty-requests if leave-requests tab is active and no sub_tab is specified
+      if (currentTab === 'leave-requests' && !activeSubTabFromUrl) {
+        const facultyTab = document.querySelector('.request-tab[data-target="faculty-requests"]');
+        const facultyContent = document.getElementById('faculty-requests');
+        if (facultyTab) facultyTab.classList.add('active');
+        if (facultyContent) facultyContent.classList.add('active');
+      } else if (activeSubTabFromUrl) {
+        const targetTab = document.querySelector(`.request-tab[data-target="${activeSubTabFromUrl}"]`);
+        const targetContent = document.getElementById(activeSubTabFromUrl);
+        if (targetTab) targetTab.classList.add('active');
+        if (targetContent) targetContent.classList.add('active');
+      }
 
-        // Add event listeners for click events on tabs
-        document.querySelectorAll('.request-tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                // Remove active class from all tabs and contents
-                document.querySelectorAll('.request-tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.request-content').forEach(c => c.classList.remove('active'));
-                
-                // Add active class to clicked tab and corresponding content
-                this.classList.add('active');
-                const target = this.getAttribute('data-target');
-                document.getElementById(target).classList.add('active');
+      // Tab click handler
+      document.querySelectorAll('.request-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+          document.querySelectorAll('.request-tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.request-content').forEach(c => c.classList.remove('active'));
+          this.classList.add('active');
 
-                // Update URL with sub_tab parameter when a tab is clicked
-                const currentUrl = new URL(window.location.href);
-                currentUrl.searchParams.set('tab', 'leave-requests'); // Ensure main tab is also correct
-                currentUrl.searchParams.set('sub_tab', target);
-                window.history.pushState({path: currentUrl.href}, '', currentUrl.href);
-            });
+          const target = this.getAttribute('data-target');
+          document.getElementById(target).classList.add('active');
+
+          const currentUrl = new URL(window.location.href);
+          currentUrl.searchParams.set('tab', 'leave-requests');
+          currentUrl.searchParams.set('sub_tab', target);
+
+          window.history.pushState({path: currentUrl.href}, '', currentUrl.href);
         });
+      });
     });
+
+    function submitWithRemarks(action, form) {
+        let message = '';
+        if (action === 'approve') {
+            message = 'Are you sure you want to APPROVE this leave request?';
+        } else if (action === 'reject') {
+            message = 'Are you sure you want to REJECT this leave request?';
+        }
+        
+        if (!confirm(message)) {
+            return false;
+        }
+        
+        const leaveId = form.querySelector('input[name="leave_id"]').value;
+        const remarksTextbox = document.querySelector(`textarea[name="remarks_${leaveId}"]`);
+        
+        if (remarksTextbox) {
+            const remarksValue = remarksTextbox.value.trim();
+            const remarksInput = document.createElement('input');
+            remarksInput.type = 'hidden';
+            remarksInput.name = 'remarks';
+            remarksInput.value = remarksValue;
+            form.appendChild(remarksInput);
+        }
+        
+        return true;
+    }
   </script>
 </body>
 </html>
