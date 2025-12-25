@@ -36,13 +36,10 @@ The Faculty Leave System allows faculty members to submit leave requests and ena
 🧑‍⚖️ 7. Leave Requests — Principal Dashboard 
 ![Principal Dashboard](screenshots/leave_requests.png)
 
-📋 8. Leave Status  
-![Leave Status](screenshots/leave_status.png)
-
-🕓 9. Leave History  
+🕓 8. Leave History  
 ![Leave History](screenshots/leave_history.png)
 
-🗄️ 10. Database Storage (phpMyAdmin)  
+🗄️ 9. Database Storage (phpMyAdmin)  
 ![Database Storage](screenshots/database_storage.png)
 
 
